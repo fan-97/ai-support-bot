@@ -1,11 +1,11 @@
 import os
 
 # 1. Telegram 设置
-BOT_TOKEN = '7953312922:AAH7ky-xXUhYt833f6xotlxYyNeZ9Sg_U5U'
+BOT_TOKEN = ''
 ALLOWED_USER_IDS = [7643520392, 8108089944]  # 允许使用机器人的用户 ID (数字)
 
 # 2. Google Gemini 设置
-GEMINI_API_KEY = "AIzaSyBXcc0iUTaMpoYVvFXco_TGhnEHKyH2Mi4"
+GEMINI_API_KEY = ""
 GEMINI_MODEL = "gemini-2.5-flash" # 使用 Flash 模型，速度快且免费额度多
 
 # 3. 网络代理 (国内必须设置)
