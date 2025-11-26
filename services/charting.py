@@ -4,9 +4,9 @@ import mplfinance as mpf
 def generate_chart_image(df, symbol, interval):
     """绘制 K线 + MACD + 成交量 (修复面板数量版)"""
     buf = io.BytesIO()
-    
     # 截取最近 60 根用于绘图
     plot_df = df.tail(100)
+
     
     # MACD 柱子颜色 (涨红跌绿)
     macd_colors = ['green' if v >= 0 else 'red' for v in plot_df['macd_hist']]

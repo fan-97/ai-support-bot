@@ -15,6 +15,7 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, prompt_ov
         img = Image.open(image_buf)
         
         # 提取最新指标数据
+        print
         rsi = df['rsi']
         macd_dif = df['macd']
         macd_hist = df['macd_hist']

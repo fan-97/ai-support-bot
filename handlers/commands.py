@@ -1,4 +1,5 @@
 import logging
+import traceback
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config.settings import DEFAULT_BALANCE, DEFAULT_RISK_PCT
@@ -7,6 +8,7 @@ from services.data_fetcher import get_binance_klines, get_current_funding_rate
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_gemini
 from utils.decorators import restricted
+from services.indicators import calc_rsi, calc_macd
 
 @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -124,10 +126,16 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if df is None:
             await status_msg.edit_text("❌ 获取数据失败，请检查币种拼写或网络。")
             return
+        # 计算指标
+        df["rsi"] = calc_rsi(df["close"])
+        df["macd"], df["macd_signal"], df["macd_hist"] = calc_macd(df["close"])
         
         # 3. 生成图表
         chart_buf = generate_chart_image(df, symbol, interval)
-        
+
+        last_row = df.iloc[-1]
+        ts = last_row["close_time"]
+        close_price = last_row["close"]
         # 4. 构建深度分析 Prompt
         detailed_prompt = """
         You are a Top-Tier Crypto Analyst. Analyze {symbol} on {interval} timeframe.
@@ -206,6 +214,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         # 如果中间出错了，status_msg 还在，可以用来报错
         logging.error(f"Manual AI Error: {e}")
+        traceback.print_exc()   
         try:
             await status_msg.edit_text(f"❌ 分析出错: {str(e)[:100]}") # 截断错误信息防止太长
         except:

@@ -35,7 +35,7 @@ def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str
 
     df["open_time"] = pd.to_datetime(df["open_time"], unit="ms")
     df["close_time"] = pd.to_datetime(df["close_time"], unit="ms")
-
+    df.set_index('open_time', inplace=True)
     price_cols = ["open", "high", "low", "close", "volume"]
     df[price_cols] = df[price_cols].astype(float)
 
