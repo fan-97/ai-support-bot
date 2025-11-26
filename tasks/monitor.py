@@ -62,7 +62,7 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
                 ai = analyze_with_gemini(chart, sym, interval, df, funding, patterns=patterns)
                 
                 chart.seek(0)
-                caption = f"🚨 **自动监控信号**\n{sym} {interval}\n建议: {ai.get('action')}\n理由: {ai.get('reason')}"
+                caption = f"🚨 **自动监控信号**\n{sym} {interval}\n形态:{patterns} \n建议: {ai.get('action')}\n理由: {ai.get('reason')}"
                 for uid in ALLOWED_USER_IDS:
                     await context.bot.send_photo(uid, photo=chart, caption=caption)
                     

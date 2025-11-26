@@ -190,7 +190,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         full_report = (
             f"📄 **{symbol} 深度研报**\n"
             f"-------------------------------\n"
-            f"👀 **形态**: {pattern}\n"
+            f"👀 **形态**: {pattern}|{patterns}\n"
             f"🧱 **关键位**: {levels}\n"
             f"-------------------------------\n"
             f"📊 **数据指标**:\n"

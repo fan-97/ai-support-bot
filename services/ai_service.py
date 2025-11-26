@@ -22,11 +22,6 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, patterns=
         macd_hist = last_row['macd_hist']
         macd_signal = last_row['macd_signal']
         close_price = last_row['close']
-
-        print(type(rsi), rsi)
-        print(type(funding_rate), funding_rate)
-        print(type(macd_dif), macd_dif)
-        print(type(macd_hist), macd_hist)
         
         # 默认 Prompt (自动监控用)
         base_prompt = f"""
@@ -60,10 +55,10 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, patterns=
         {{
             "trend": "Bullish | Bearish | Neutral",
             "pattern": "Name of pattern or None",
-            "key_levels": {
+            "key_levels": {{
                 "support": ["xxxx", "xxxx"],
                 "resistance": ["xxxx", "xxxx"]
-            },
+            }},
             "score": 0-10,
             "reason": "Short and concise reasoning (< 300 words).",
             "action": "LONG | SHORT | WAIT",
