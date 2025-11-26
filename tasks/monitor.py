@@ -41,30 +41,31 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
             RSI 超买回落确认：{rsi_ok}(最新RSI={df['rsi'].iloc[-1]:.2f})
             MACD 看跌确认：{macd_ok}(MACD={df['macd'].iloc[-1]:.4f}, Signal={df['macd_signal'].iloc[-1]:.4f})
             """
-            logging.info(notify_message)
+            
 
             
             need_ai = False
             if patterns and vol_ok and rsi_ok and macd_ok:
-                logging.info("✅ 高概率看跌信号（形态 + 成交量 + RSI + MACD 全部满足）")
+                notify_message.append("✅ 高概率看跌信号（形态 + 成交量 + RSI + MACD 全部满足）")
                 need_ai = True
             elif patterns and (vol_ok or rsi_ok or macd_ok):
-                logging.info("⚠ 存在一定看跌概率：有形态 + 至少一个指标确认，需要结合大级别趋势慎重判断。")
+                notify_message.append("⚠ 存在一定看跌概率：有形态 + 至少一个指标确认，需要结合大级别趋势慎重判断。")
                 need_ai = True
             elif patterns:
-                logging.info("❗ 仅出现形态但指标未确认，可能是假信号，谨慎对待。")
+                notify_message.append("❗ 仅出现形态但指标未确认，可能是假信号，谨慎对待。")
             else:
-                logging.info("暂无明显强烈看跌信号。")
-            
+                notify_message.append("暂无明显强烈看跌信号。")
+
+            notify_message = "\n".join(notify_message)
+            logging.info(notify_message)
             if need_ai:
                 chart = generate_chart_image(df, sym, interval)
                 # 使用默认 Prompt 进行简短分析
-                ai = analyze_with_gemini(chart, sym, interval, df, funding)
+                ai = analyze_with_gemini(chart, sym, interval, df, funding, patterns=patterns)
                 
                 chart.seek(0)
                 caption = f"🚨 **自动监控信号**\n{sym} {interval}\n建议: {ai.get('action')}\n理由: {ai.get('reason')}"
                 for uid in ALLOWED_USER_IDS:
                     await context.bot.send_photo(uid, photo=chart, caption=caption)
-                    
         except Exception as e:
             logging.error(f"Monitor error: {e}")

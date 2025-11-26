@@ -9,6 +9,7 @@ from services.charting import generate_chart_image
 from services.ai_service import analyze_with_gemini
 from utils.decorators import restricted
 from services.indicators import calc_rsi, calc_macd
+from services.patterns import detect_bearish_patterns
 
 @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -161,9 +162,9 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "action": "LONG / SHORT / WAIT"
         }}
         """
-        
+        patterns = detect_bearish_patterns(df)
         # 5. 调用 AI
-        result = analyze_with_gemini(chart_buf, symbol, interval, last_row, funding_rate, prompt_override=detailed_prompt)
+        result = analyze_with_gemini(chart_buf, symbol, interval, last_row, funding_rate, patterns)
         
         # 6. 解析结果
         trend = result.get('trend', 'N/A')

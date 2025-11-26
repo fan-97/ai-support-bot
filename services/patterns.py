@@ -96,15 +96,15 @@ def detect_bearish_patterns(df: pd.DataFrame):
     prev2 = df.iloc[-3]
 
     if is_bearish_engulfing(prev, last):
-        patterns.append("Bearish Engulfing(看跌吞没)")
+        patterns.append("Bearish Engulfing")
 
     if is_dark_cloud_cover(prev, last):
-        patterns.append("Dark Cloud Cover(乌云盖顶)")
+        patterns.append("Dark Cloud Cove")
 
     if is_shooting_star(last):
-        patterns.append("Shooting Star(射击之星)")
+        patterns.append("Shooting Star")
 
     if is_evening_star(prev2, prev, last):
-        patterns.append("Evening Star(黄昏之星)")
+        patterns.append("Evening Star")
 
     return patterns
