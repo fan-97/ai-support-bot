@@ -1,3 +1,4 @@
+import traceback
 import json
 import logging
 import google.generativeai as genai
@@ -78,4 +79,5 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, patterns=
         return json.loads(text)
     except Exception as e:
         logging.error(f"AI Error: {e}")
+        traceback.print_exc()   
         return {"score": 0, "reason": f"AI Error: {e}", "action": "WAIT"}
