@@ -33,16 +33,14 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
             ts = last_row["close_time"]
             close_price = last_row["close"]
 
-            notify_message = f"""
+            notify_message = [f"""
             ====================================
             最新K线收盘时间:{ts}  收盘价：{close_price}
             检测到的看跌K线形态:{patterns if patterns else "无明显形态"}
             成交量放大确认：{vol_ok}
             RSI 超买回落确认：{rsi_ok}(最新RSI={df['rsi'].iloc[-1]:.2f})
             MACD 看跌确认：{macd_ok}(MACD={df['macd'].iloc[-1]:.4f}, Signal={df['macd_signal'].iloc[-1]:.4f})
-            """
-            
-
+            """]
             
             need_ai = False
             if patterns and vol_ok and rsi_ok and macd_ok:
@@ -67,5 +65,6 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
                 caption = f"🚨 **自动监控信号**\n{sym} {interval}\n建议: {ai.get('action')}\n理由: {ai.get('reason')}"
                 for uid in ALLOWED_USER_IDS:
                     await context.bot.send_photo(uid, photo=chart, caption=caption)
+                    
         except Exception as e:
             logging.error(f"Monitor error: {e}")
