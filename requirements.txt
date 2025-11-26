@@ -1,0 +1,6 @@
+python-telegram-bot
+pandas
+mplfinance
+google-generativeai
+pillow
+requests
