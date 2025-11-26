@@ -8,17 +8,18 @@ from config.settings import GEMINI_API_KEY, GEMINI_MODEL
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel(GEMINI_MODEL)
 
-def analyze_with_gemini(image_buf, symbol, interval, last_row, funding_rate, prompt_override=None):
+def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, prompt_override=None):
     """通用 AI 分析函数"""
     try:
         image_buf.seek(0)
         img = Image.open(image_buf)
         
         # 提取最新指标数据
-        rsi = last_row['rsi']
-        macd_dif = last_row['macd_dif']
-        macd_hist = last_row['macd_hist']
-        close_price = last_row['close']
+        rsi = df['rsi']
+        macd_dif = df['macd']
+        macd_hist = df['macd_hist']
+        macd_signal = df['macd_signal']
+        close_price = df['close']
         
         # 默认 Prompt (自动监控用)
         base_prompt = f"""

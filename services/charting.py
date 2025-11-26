@@ -6,15 +6,15 @@ def generate_chart_image(df, symbol, interval):
     buf = io.BytesIO()
     
     # 截取最近 60 根用于绘图
-    plot_df = df.tail(60)
+    plot_df = df.tail(100)
     
     # MACD 柱子颜色 (涨红跌绿)
     macd_colors = ['green' if v >= 0 else 'red' for v in plot_df['macd_hist']]
     
     # 配置副图 (MACD) -> 放在 Panel 1
     apds = [
-        mpf.make_addplot(plot_df['macd_dif'], panel=1, color='orange', width=1.0, ylabel='MACD'),
-        mpf.make_addplot(plot_df['macd_dea'], panel=1, color='blue', width=1.0),
+        mpf.make_addplot(plot_df['macd'], panel=1, color='orange', width=1.0, ylabel='MACD'),
+        mpf.make_addplot(plot_df['macd_signal'], panel=1, color='blue', width=1.0),
         mpf.make_addplot(plot_df['macd_hist'], panel=1, type='bar', color=macd_colors, alpha=0.5),
     ]
 

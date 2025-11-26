@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config.settings import DEFAULT_BALANCE, DEFAULT_RISK_PCT
 from services.storage import watchlist, save_data, user_risk_settings
-from services.market_data import get_market_data
+from services.data_fetcher import get_binance_klines, get_current_funding_rate
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_gemini
 from utils.decorators import restricted
@@ -119,12 +119,11 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # 2. 获取数据 & 计算
-        df, funding_rate = get_market_data(symbol, interval)
+        df = get_binance_klines(symbol, interval)
+        funding_rate = get_current_funding_rate(symbol)
         if df is None:
             await status_msg.edit_text("❌ 获取数据失败，请检查币种拼写或网络。")
             return
-
-        last_row = df.iloc[-1]
         
         # 3. 生成图表
         chart_buf = generate_chart_image(df, symbol, interval)
