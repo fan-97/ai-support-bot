@@ -38,9 +38,9 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, patterns=
 
         DATA:
         - Current Price: {close_price}
-        - RSI: {rsi:.1f}
-        - Funding Rate: {funding_rate:.4f}%
-        - MACD: DIF={macd_dif:.4f}, Histogram={macd_hist:.4f}
+        - RSI: {rsi}
+        - Funding Rate: {funding_rate}%
+        - MACD: DIF={macd_dif}, Histogram={macd_hist}
         - Detected Pattern (numerical scan): {patterns if patterns else "None"}
 
         ANALYSIS RULES:
