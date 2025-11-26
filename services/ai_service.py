@@ -67,11 +67,11 @@ def analyze_with_gemini(image_buf, symbol, interval, df, funding_rate, patterns=
         """
         
         # 如果是手动调用 /ai，使用更详细的 Prompt
-        if prompt_override:
-            base_prompt = prompt_override.format(
-                symbol=symbol, interval=interval, price=close_price,
-                rsi=rsi, funding=funding_rate, dif=macd_dif, hist=macd_hist
-            )
+        # if prompt_override:
+        #     base_prompt = prompt_override.format(
+        #         symbol=symbol, interval=interval, price=close_price,
+        #         rsi=rsi, funding=funding_rate, dif=macd_dif, hist=macd_hist
+        #     )
 
         response = model.generate_content([base_prompt, img])
         text = response.text.replace("```json", "").replace("```", "").strip()

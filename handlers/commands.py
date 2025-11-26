@@ -164,7 +164,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
         patterns = detect_bearish_patterns(df)
         # 5. 调用 AI
-        result = analyze_with_gemini(chart_buf, symbol, interval, last_row, funding_rate, patterns)
+        result = analyze_with_gemini(chart_buf, symbol, interval, df, funding_rate, patterns)
         
         # 6. 解析结果
         trend = result.get('trend', 'N/A')
