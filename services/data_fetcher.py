@@ -1,15 +1,32 @@
-import requests
-import pandas as pd
+﻿import asyncio
 import logging
+from typing import Optional
+
+import httpx
+import pandas as pd
 from config.settings import BASE_URL, PROXY_URL
 
+# HTTP client config (shared across calls)
+_PROXIES = PROXY_URL or None
+_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 
 
-def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str = "futures") -> pd.DataFrame:
-    """
-    从 Binance 获取 K 线数据，返回 DataFrame
-    market = "futures" 使用合约接口；"spot" 使用现货接口
-    """
+async def _fetch_json(url: str, params: dict) -> Optional[list]:
+    """GET with proxy/timeout and a small retry backoff."""
+    for attempt in range(2):
+        try:
+            async with httpx.AsyncClient(proxy=_PROXIES, timeout=_TIMEOUT) as client:
+                resp = await client.get(url, params=params)
+                resp.raise_for_status()
+                return resp.json()
+        except Exception as exc:
+            logging.warning(f"Request failed ({attempt + 1}/2): {url} params={params} error={exc}")
+            await asyncio.sleep(1)
+    return None
+
+
+async def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str = "futures") -> Optional[pd.DataFrame]:
+    """Fetch Binance kline data asynchronously."""
     if market == "futures":
         base_url = f"{BASE_URL}/fapi/v1/klines"
     else:
@@ -21,9 +38,9 @@ def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str
         "limit": limit
     }
 
-    resp = requests.get(base_url, params=params, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
+    data = await _fetch_json(base_url, params)
+    if not data:
+        return None
 
     cols = [
         "open_time", "open", "high", "low", "close", "volume",
@@ -41,15 +58,18 @@ def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str
 
     return df
 
-def get_current_funding_rate(symbol: str) -> float:
-    """获取当前资金费率"""
+
+async def get_current_funding_rate(symbol: str) -> float:
+    """Fetch current funding rate; return 0 on failure."""
     url = f"{BASE_URL}/fapi/v1/premiumIndex"
     params = {"symbol": symbol}
+
+    data = await _fetch_json(url, params)
+    if not data:
+        return 0.0
+
     try:
-        resp = requests.get(url, params=params, timeout=5)
-        resp.raise_for_status()
-        data = resp.json()
         return float(data.get("lastFundingRate", 0))
-    except Exception as e:
-        logging.error(f"Funding Rate Error: {e}")
+    except Exception as exc:
+        logging.error(f"Funding Rate parse error: {exc}")
         return 0.0
