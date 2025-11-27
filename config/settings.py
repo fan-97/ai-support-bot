@@ -10,7 +10,7 @@ ALLOWED_USER_IDS = [7643520392, 8108089944]
 # OpenRouter (Unified Provider)
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 OPENROUTER_BASE_URL = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
-OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'openai/gpt-4o-mini')
+OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'google/gemini-2.5-flash')
 AI_TIMEOUT = 120
 
 # Site info for OpenRouter rankings (optional)
