@@ -119,9 +119,6 @@ async def calc_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚙️ Lev: `< {lev:.1f}x`",
             parse_mode='Markdown'
         )
-            f"⚙️ Lev: `< {lev:.1f}x`",
-            parse_mode='Markdown'
-        )
     except (IndexError, ValueError):
         await update.message.reply_text("Usage: `/calc entry stop` (e.g. `/calc 3000 3100`)")
     except Exception as e:
@@ -188,7 +185,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📊 Data:\n"
             f"• RSI: `{last_row['rsi']:.1f}`\n"
             f"• MACD hist: `{last_row['macd_hist']:.5f}`\n"
-            f"• Funding: `{funding_rate:.4f}%`\n"
+            f"• Funding: `{funding_rate*100:.4f}%`\n"
             f"-------------------------------\n"
             f"💡 Reasoning:\n{reason}\n"
         )
