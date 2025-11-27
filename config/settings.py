@@ -11,6 +11,7 @@ ALLOWED_USER_IDS = [7643520392, 8108089944]
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 OPENROUTER_BASE_URL = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
 OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', 'openai/gpt-4o-mini')
+AI_TIMEOUT = 120
 
 # Site info for OpenRouter rankings (optional)
 SITE_URL = os.getenv('SITE_URL', 'https://github.com/your-repo/ai-support-bot')

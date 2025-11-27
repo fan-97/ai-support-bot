@@ -17,11 +17,11 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
 
     for sym, interval in watchlist.items():
         try:
-            logging.info(f"Fetching {sym} {interval} klines...")
+            # logging.info(f"Fetching {sym} {interval} klines...")
             df = await get_binance_klines(sym, interval)
             funding = await get_current_funding_rate(sym)
             if df is None:
-                logging.warning(f"{sym} {interval} data is empty")
+                logging.warning(f"[{sym} {interval}] Data is empty or fetch failed")
                 continue
 
             df["rsi"] = calc_rsi(df["close"])
@@ -60,18 +60,21 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
             logging.info("\n".join(notify_message))
 
             if need_ai:
-                chart = await asyncio.to_thread(generate_chart_image, df, sym, interval)
-                ai = await analyze_with_ai(chart, sym, interval, df, funding, patterns=patterns)
+                try:
+                    chart = await asyncio.to_thread(generate_chart_image, df, sym, interval)
+                    ai = await analyze_with_ai(chart, sym, interval, df, funding, patterns=patterns)
 
-                chart.seek(0)
-                caption = (
-                    f"🚨 Auto signal\n{sym} {interval}\n"
-                    f"Pattern: {patterns}\n"
-                    f"Action: {ai.get('action')}\n"
-                    f"Reason: {ai.get('reason')}"
-                )
-                for uid in ALLOWED_USER_IDS:
-                    await context.bot.send_photo(uid, photo=chart, caption=caption)
+                    chart.seek(0)
+                    caption = (
+                        f"🚨 Auto signal\n{sym} {interval}\n"
+                        f"Pattern: {patterns}\n"
+                        f"Action: {ai.get('action')}\n"
+                        f"Reason: {ai.get('reason')}"
+                    )
+                    for uid in ALLOWED_USER_IDS:
+                        await context.bot.send_photo(uid, photo=chart, caption=caption)
+                except Exception as e:
+                    logging.exception(f"[{sym} {interval}] AI Analysis/Notification failed: {e}")
 
         except Exception as e:
-            logging.error(f"Monitor error: {e}")
+            logging.exception(f"[{sym} {interval}] Monitor loop error: {e}")

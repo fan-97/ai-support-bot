@@ -20,7 +20,7 @@ async def _fetch_json(url: str, params: dict) -> Optional[list]:
                 resp.raise_for_status()
                 return resp.json()
         except Exception as exc:
-            logging.warning(f"Request failed ({attempt + 1}/2): {url} params={params} error={exc}")
+            logging.warning(f"Request failed ({attempt + 1}/2): {url} | params={params} | error={exc}")
             await asyncio.sleep(1)
     return None
 

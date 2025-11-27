@@ -13,6 +13,7 @@ from config.settings import (
     OPENROUTER_MODEL,
     SITE_URL,
     SITE_NAME,
+    AI_TIMEOUT,
 )
 
 _openrouter_client = None
@@ -67,6 +68,7 @@ def _get_openrouter_client():
     _openrouter_client = OpenAI(
         base_url=OPENROUTER_BASE_URL,
         api_key=OPENROUTER_API_KEY,
+        timeout=AI_TIMEOUT,
     )
     return _openrouter_client
 
@@ -89,23 +91,26 @@ def _analyze_openrouter(image_buf, prompt: str, model: str = None) -> Dict[str, 
     if SITE_NAME:
         extra_headers["X-Title"] = SITE_NAME
 
-    resp = client.responses.create(
+    resp = client.chat.completions.create(
         model=use_model,
         extra_headers=extra_headers,
-        instructions="You are a concise crypto market analyst. Reply only JSON.",
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "input_text", "text": prompt},
-                    {"type": "input_image", "image_url": b64},
-                ],
-            },
-        ],
-        temperature=0.3,
+        messages=[
+                {
+                    "role": "system",
+                    "content": "You are a concise crypto market analyst. Reply only JSON."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": b64}
+                    ]
+                }
+            ],
+            temperature=0.3,
     )
 
-    raw_text = resp.text.replace("```json", "").replace("```", "").strip()
+    raw_text = resp.choices[0].message.content.replace("```json", "").replace("```", "").strip()
     logging.info(f"AI response: {raw_text}")
     return json.loads(raw_text)
 
@@ -135,5 +140,5 @@ async def analyze_with_ai(image_buf, symbol: str, interval: str, df, funding_rat
         logging.error(f"AI JSON parse error: {exc}")
         return _fallback_response(f"JSON parse error: {exc}")
     except Exception as exc:
-        logging.error(f"AI Error: {exc}")
+        logging.exception(f"AI Error: {exc}")
         return _fallback_response(f"AI Error: {exc}")
