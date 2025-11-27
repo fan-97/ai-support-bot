@@ -1,6 +1,6 @@
 ﻿import logging
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
-from config.settings import BOT_TOKEN, PROXY_URL
+from config.settings import BOT_TOKEN, PROXY_URL, TELEGRAM_CONNECT_TIMEOUT, TELEGRAM_READ_TIMEOUT
 from services.storage import load_data
 from handlers.commands import start, add_coin, list_coins, set_risk, calc_position, manual_ai_analyze
 from handlers.callbacks import button_handler
@@ -11,7 +11,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 if __name__ == '__main__':
     load_data()
 
-    builder = ApplicationBuilder().token(BOT_TOKEN)
+    builder = ApplicationBuilder().token(BOT_TOKEN).connect_timeout(TELEGRAM_CONNECT_TIMEOUT).read_timeout(TELEGRAM_READ_TIMEOUT)
     if PROXY_URL:
         builder = builder.proxy_url(PROXY_URL).get_updates_proxy_url(PROXY_URL)
     app = builder.build()

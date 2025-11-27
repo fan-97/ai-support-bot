@@ -55,10 +55,18 @@ async def add_coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         symbol = args[0].upper()
         if not symbol.endswith('USDT'):
             symbol += 'USDT'
-        watchlist[symbol] = args[1].lower()
+        
+        interval = args[1].lower()
+        valid_intervals = ['15m', '1h', '4h', '1d']
+        if interval not in valid_intervals:
+             await update.message.reply_text(f"Invalid interval. Use: {', '.join(valid_intervals)}")
+             return
+
+        watchlist[symbol] = interval
         save_data()
-        await update.message.reply_text(f"Added: **{symbol}** ({args[1]})", parse_mode='Markdown')
-    except Exception:
+        await update.message.reply_text(f"Added: **{symbol}** ({interval})", parse_mode='Markdown')
+    except Exception as e:
+        logging.error(f"Add coin error: {e}")
         await update.message.reply_text("Error, try again")
 
 
@@ -78,8 +86,11 @@ async def set_risk(update: Update, context: ContextTypes.DEFAULT_TYPE):
         risk = float(context.args[1])
         user_risk_settings[update.effective_user.id] = {'balance': balance, 'risk': risk}
         await update.message.reply_text(f"Risk updated. Balance `{balance}U`, Risk `{risk}%`", parse_mode='Markdown')
-    except Exception:
-        await update.message.reply_text("Usage: `/set 1000 2`")
+    except (IndexError, ValueError):
+        await update.message.reply_text("Usage: `/set 1000 2` (Balance Risk%)")
+    except Exception as e:
+        logging.error(f"Set risk error: {e}")
+        await update.message.reply_text("Error setting risk parameters.")
 
 
 @restricted
@@ -108,8 +119,14 @@ async def calc_position(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"⚙️ Lev: `< {lev:.1f}x`",
             parse_mode='Markdown'
         )
-    except Exception:
-        await update.message.reply_text("Usage: `/calc entry stop`")
+            f"⚙️ Lev: `< {lev:.1f}x`",
+            parse_mode='Markdown'
+        )
+    except (IndexError, ValueError):
+        await update.message.reply_text("Usage: `/calc entry stop` (e.g. `/calc 3000 3100`)")
+    except Exception as e:
+        logging.error(f"Calc position error: {e}")
+        await update.message.reply_text("Error calculating position.")
 
 
 @restricted
@@ -182,8 +199,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
 
     except Exception as e:
-        logging.error(f"Manual AI Error: {e}")
-        traceback.print_exc()
+        logging.exception(f"Manual AI Error: {e}")
         try:
             await status_msg.edit_text(f"Error: {str(e)[:100]}")
         except Exception:

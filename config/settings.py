@@ -6,6 +6,8 @@ load_dotenv()
 # Telegram settings
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 ALLOWED_USER_IDS = [7643520392, 8108089944]
+TELEGRAM_CONNECT_TIMEOUT = 30.0
+TELEGRAM_READ_TIMEOUT = 60.0
 
 # OpenRouter (Unified Provider)
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
