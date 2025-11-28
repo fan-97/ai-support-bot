@@ -34,15 +34,11 @@ def load_data():
             print(f"Error loading data: {e}")
 
 def save_data():
-    tmp_file = f"{DATA_FILE}.tmp"
     try:
-        with open(tmp_file, 'w', encoding='utf-8') as f:
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(user_watchlists, f, indent=2)
-        os.replace(tmp_file, DATA_FILE)
     except IOError as e:
         print(f"Error saving data: {e}")
-        if os.path.exists(tmp_file):
-            os.remove(tmp_file)
 
 def get_user_watchlist(user_id):
     uid = str(user_id)
