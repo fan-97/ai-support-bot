@@ -1,8 +1,7 @@
-﻿python-telegram-bot[job-queue]==20.7
+python-telegram-bot[job-queue]==20.7
 pandas==2.2.2
 numpy==1.26.4
 mplfinance==0.12.10b0
-httpx
 openai>=1.61.0
 pillow==10.4.0
 requests==2.32.3

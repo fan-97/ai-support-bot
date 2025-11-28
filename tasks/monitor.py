@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import logging
 from telegram.ext import ContextTypes
 from config.settings import ALLOWED_USER_IDS

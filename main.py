@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 from config.settings import BOT_TOKEN, PROXY_URL, TELEGRAM_CONNECT_TIMEOUT, TELEGRAM_READ_TIMEOUT
 from services.storage import load_data
