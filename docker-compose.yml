@@ -11,4 +11,3 @@ services:
       - ./watchlist.json:/app/watchlist.json
     # If you want to persist logs or other data, add more volumes here
       - ./logs:/app/logs
-      - .env:/app/.env

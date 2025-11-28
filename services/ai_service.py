@@ -132,9 +132,8 @@ def _analyze_openrouter(image_buf, prompt: str, model: str = None) -> Dict[str, 
             ],
             temperature=0.3,
     )
-
+    logging.info(f"AI response: {resp}")
     raw_text = resp.choices[0].message.content.replace("```json", "").replace("```", "").strip()
-    logging.info(f"AI response: {raw_text}")
     return json.loads(raw_text)
 
 
