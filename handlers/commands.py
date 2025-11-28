@@ -8,6 +8,7 @@ from services.storage import add_to_watchlist, get_user_watchlist, user_risk_set
 from services.data_fetcher import get_binance_klines, get_current_funding_rate
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_ai
+from services.notification import NotificationService
 from utils.decorators import restricted
 from services.indicators import calc_rsi, calc_macd
 from services.patterns import detect_bearish_patterns
@@ -160,39 +161,17 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         result = await analyze_with_ai(chart_buf, symbol, interval, df, funding_rate, patterns, model=model)
 
-        trend = result.get('trend', 'N/A')
-        pattern = result.get('pattern', 'N/A')
-        levels = result.get('key_levels', 'N/A')
-        reason = result.get('reason', 'N/A')
-        action = result.get('action', 'WAIT')
-        score = result.get('score', 0)
-
-        emoji = "🔥" if score >= 8 else "😐"
-        short_caption = (
-            f"🤖 **AI Summary** | {symbol} {interval}\n"
-            f"🎯 Action: {action} {emoji}\n"
-            f"🧠 Score: {score}/10\n"
-            f"📉 Trend: {trend}\n"
-            f"⬇️ See full report below"
-        )
-
-        full_report = (
-            f"📄 **{symbol} Report**\n"
-            f"-------------------------------\n"
-            f"👀 Pattern: {pattern}|{patterns}\n"
-            f"🧱 Levels: {levels}\n"
-            f"-------------------------------\n"
-            f"📊 Data:\n"
-            f"• RSI: `{last_row['rsi']:.1f}`\n"
-            f"• MACD hist: `{last_row['macd_hist']:.5f}`\n"
-            f"• Funding: `{funding_rate*100:.4f}%`\n"
-            f"-------------------------------\n"
-            f"💡 Reasoning:\n{reason}\n"
-        )
-
-        chart_buf.seek(0)
-        await update.message.reply_photo(photo=chart_buf, caption=short_caption, parse_mode='Markdown')
-        await update.message.reply_text(full_report, parse_mode='Markdown')
+         
+        # 6. Format and Send Report
+        market_data = {
+            'close': last_row['close'],
+            'rsi': last_row['rsi'],
+            'funding_rate': funding_rate
+        }
+        
+        caption, full_report = NotificationService.format_report(symbol, interval, result, market_data)
+        
+        await NotificationService.reply_telegram_report(update, chart_buf, caption, full_report)
         await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
 
     except Exception as e:
