@@ -89,6 +89,35 @@ Run the bot:
 python main.py
 ```
 
+## Docker Deployment
+
+1. **Prerequisites**: Ensure you have Docker and Docker Compose installed.
+
+2. **Configuration**:
+
+   - Create a `.env` file from `.env.example` and fill in your keys.
+   - Create an empty `watchlist.json` file if it doesn't exist:
+     ```bash
+     echo "{}" > watchlist.json
+     ```
+
+3. **Run with Docker Compose**:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **View Logs**:
+
+   ```bash
+   docker-compose logs -f
+   ```
+
+5. **Stop**:
+   ```bash
+   docker-compose down
+   ```
+
 ### Commands
 
 | Command  | Description                             | Example             |

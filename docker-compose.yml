@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  ai-bot:
+    build: .
+    container_name: ai-support-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./watchlist.json:/app/watchlist.json
+    # If you want to persist logs or other data, add more volumes here
+    # - ./logs:/app/logs
