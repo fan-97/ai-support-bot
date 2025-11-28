@@ -11,16 +11,18 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
-# gcc and python3-dev might be needed for some python packages
+# build-essential and python3-dev are needed for building some python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
+    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file into the container at /app
 COPY requirements.txt /app/
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade pip and install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . /app/
