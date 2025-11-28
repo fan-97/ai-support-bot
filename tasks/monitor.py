@@ -2,7 +2,7 @@
 import logging
 from telegram.ext import ContextTypes
 from config.settings import ALLOWED_USER_IDS
-from services.storage import watchlist
+from services.storage import get_all_unique_pairs, get_users_watching
 from services.data_fetcher import get_binance_klines, get_current_funding_rate
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_ai
@@ -12,10 +12,11 @@ from services.indicators import calc_rsi, calc_macd
 
 
 async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
-    if not watchlist:
+    unique_pairs = get_all_unique_pairs()
+    if not unique_pairs:
         return
 
-    for sym, interval in watchlist.items():
+    for sym, interval in unique_pairs:
         try:
             # logging.info(f"Fetching {sym} {interval} klines...")
             df = await get_binance_klines(sym, interval)
@@ -71,8 +72,13 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
                         f"Action: {ai.get('action')}\n"
                         f"Reason: {ai.get('reason')}"
                     )
-                    for uid in ALLOWED_USER_IDS:
-                        await context.bot.send_photo(uid, photo=chart, caption=caption)
+
+                    
+                    interested_users = get_users_watching(sym, interval)
+                    for uid in interested_users:
+                        # Double check if user is allowed (optional, but good practice if storage gets messy)
+                        if uid in ALLOWED_USER_IDS or str(uid) in [str(x) for x in ALLOWED_USER_IDS]:
+                            await context.bot.send_photo(uid, photo=chart, caption=caption)
                 except Exception as e:
                     logging.exception(f"[{sym} {interval}] AI Analysis/Notification failed: {e}")
 

@@ -4,7 +4,7 @@ import traceback
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config.settings import DEFAULT_BALANCE, DEFAULT_RISK_PCT
-from services.storage import watchlist, save_data, user_risk_settings
+from services.storage import add_to_watchlist, get_user_watchlist, user_risk_settings
 from services.data_fetcher import get_binance_klines, get_current_funding_rate
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_ai
@@ -62,8 +62,7 @@ async def add_coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
              await update.message.reply_text(f"Invalid interval. Use: {', '.join(valid_intervals)}")
              return
 
-        watchlist[symbol] = interval
-        save_data()
+        add_to_watchlist(update.effective_user.id, symbol, interval)
         await update.message.reply_text(f"Added: **{symbol}** ({interval})", parse_mode='Markdown')
     except Exception as e:
         logging.error(f"Add coin error: {e}")
@@ -72,7 +71,8 @@ async def add_coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @restricted
 async def list_coins(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = "📋 **Watchlist**:\n" + "\n".join([f"`{k:<10} | {v}`" for k, v in watchlist.items()]) if watchlist else "Empty list"
+    user_watchlist = get_user_watchlist(update.effective_user.id)
+    msg = "📋 **Watchlist**:\n" + "\n".join([f"`{k:<10} | {v}`" for k, v in user_watchlist.items()]) if user_watchlist else "Empty list"
     if update.callback_query:
         await update.callback_query.edit_message_text(msg, parse_mode='Markdown')
     else:

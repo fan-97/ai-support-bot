@@ -1,6 +1,6 @@
 ﻿from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from services.storage import watchlist, save_data
+from services.storage import get_user_watchlist, remove_from_watchlist
 from handlers.commands import list_coins, start
 from tasks.monitor import monitor_task
 
@@ -30,14 +30,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
     elif query.data == 'del_help':
-        keyboard = [[InlineKeyboardButton(f"🗑 {s}", callback_data=f"del_{s}")] for s in watchlist]
+        user_watchlist = get_user_watchlist(update.effective_user.id)
+        keyboard = [[InlineKeyboardButton(f"🗑 {s}", callback_data=f"del_{s}")] for s in user_watchlist]
         keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="back")])
         await query.edit_message_text("Delete symbol:", reply_markup=InlineKeyboardMarkup(keyboard))
     elif query.data.startswith('del_'):
         sym = query.data.split('_')[1]
-        if sym in watchlist:
-            del watchlist[sym]
-        save_data()
+        remove_from_watchlist(update.effective_user.id, sym)
         await query.edit_message_text(f"Deleted {sym}")
     elif query.data == 'back':
         await start(update, context)
