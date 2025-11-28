@@ -18,7 +18,7 @@ class NotificationService:
         pattern = result.get('pattern', 'N/A')
         score = result.get('score', 0)
         action = result.get('action', 'WAIT').upper()
-        reason = result.get('reason', 'N/A').replace('\n', '\n• ') # Optimize layout
+        reason = result.get('reason', 'N/A') # Optimize layout
         
         # Parse trade setup
         setup = result.get('trade_setup', {})
