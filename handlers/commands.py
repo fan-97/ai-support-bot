@@ -14,21 +14,46 @@ from services.indicators import calc_rsi, calc_macd
 from services.patterns import detect_bearish_patterns
 
 
+
+@restricted
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show help message."""
+    text = (
+        "🤖 **AI Crypto Analyst Bot Help**\n\n"
+        "**Core Commands**:\n"
+        "• `/start` - Open main menu\n"
+        "• `/add <SYMBOL> <INTERVAL>` - Track a coin (e.g., `/add BTC 1h`)\n"
+        "• `/list` - View your watchlist\n"
+        "• `/ai <SYMBOL> <INTERVAL>` - Manual AI analysis\n"
+        "• `/models` - Browse AI models\n"
+        "• `/set <BALANCE> <RISK>` - Set risk params\n"
+        "• `/calc <ENTRY> <SL>` - Calculate position size\n\n"
+        "**Features**:\n"
+        "• **Auto-Monitor**: I scan your watchlist every minute for bearish patterns.\n"
+        "• **AI Analysis**: I use advanced AI to analyze charts and give trading plans.\n"
+        "• **Risk Management**: I help you calculate position sizes based on your risk tolerance."
+    )
+    keyboard = [[InlineKeyboardButton("❌ Close", callback_data="close")]]
+    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
+
+
 @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Main menu for commands and buttons."""
     keyboard = [
         [InlineKeyboardButton("📜 Watchlist", callback_data='list'), InlineKeyboardButton("🔄 Scan now", callback_data='scan')],
         [InlineKeyboardButton("➕ Add symbol", callback_data='add_help'), InlineKeyboardButton("➖ Delete symbol", callback_data='del_help')],
-        [InlineKeyboardButton("🛡 Risk help", callback_data='risk_help'), InlineKeyboardButton("🤖 AI analyze", callback_data='ai_help')],
-        [InlineKeyboardButton("⚙️ Set params", callback_data='set_help'), InlineKeyboardButton("🧮 Position calc", callback_data='calc_help')]
+        [InlineKeyboardButton("🤖 AI Analyze", callback_data='ai_help'), InlineKeyboardButton("🧠 AI Models", callback_data='models_menu')],
+        [InlineKeyboardButton("🛡 Risk Help", callback_data='risk_help'), InlineKeyboardButton("⚙️ Settings", callback_data='set_help')],
+        [InlineKeyboardButton("🧮 Position Calc", callback_data='calc_help')],
+        [InlineKeyboardButton("❌ Close", callback_data="close")]
     ]
 
     text = (
-        "🤖 **AI Short Assistant**\n"
-        f"Provider: OpenRouter\n"
+        "🤖 **AI Crypto Analyst**\n"
         "------------------------------\n"
-        "Choose an action:"
+        "Welcome! I can help you monitor markets, analyze trends with AI, and manage risk.\n\n"
+        "**Quick Actions:**"
     )
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -74,10 +99,16 @@ async def add_coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def list_coins(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_watchlist = get_user_watchlist(update.effective_user.id)
     msg = "📋 **Watchlist**:\n" + "\n".join([f"`{k:<10} | {v}`" for k, v in user_watchlist.items()]) if user_watchlist else "Empty list"
+    
+    keyboard = [
+        [InlineKeyboardButton("🔙 Main Menu", callback_data="back"), InlineKeyboardButton("❌ Close", callback_data="close")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
     if update.callback_query:
-        await update.callback_query.edit_message_text(msg, parse_mode='Markdown')
+        await update.callback_query.edit_message_text(msg, reply_markup=reply_markup, parse_mode='Markdown')
     else:
-        await update.message.reply_text(msg, parse_mode='Markdown')
+        await update.message.reply_text(msg, reply_markup=reply_markup, parse_mode='Markdown')
 
 
 @restricted
