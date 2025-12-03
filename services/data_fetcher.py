@@ -73,3 +73,19 @@ async def get_current_funding_rate(symbol: str) -> float:
     except Exception as exc:
         logging.error(f"Funding Rate parse error: {exc}")
         return 0.0
+
+
+async def get_open_interest(symbol: str, interval: str) -> float:
+    """Fetch current Open Interest (Futures)."""
+    url = f"{BASE_URL}/fapi/v1/openInterest"
+    params = {"symbol": symbol}
+
+    data = await _fetch_json(url, params)
+    if not data:
+        return 0.0
+
+    try:
+        return float(data.get("openInterest", 0))
+    except Exception as exc:
+        logging.error(f"Open Interest parse error: {exc}")
+        return 0.0

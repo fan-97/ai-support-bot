@@ -5,12 +5,12 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from config.settings import DEFAULT_BALANCE, DEFAULT_RISK_PCT
 from services.storage import add_to_watchlist, get_user_watchlist, user_risk_settings
-from services.data_fetcher import get_binance_klines, get_current_funding_rate
+from services.data_fetcher import get_binance_klines, get_current_funding_rate, get_open_interest
 from services.charting import generate_chart_image
 from services.ai_service import analyze_with_ai
 from services.notification import NotificationService
 from utils.decorators import restricted
-from services.indicators import calc_rsi, calc_macd
+from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
 from services.patterns import detect_bearish_patterns
 
 
@@ -178,26 +178,33 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         df = await get_binance_klines(symbol, interval)
         funding_rate = await get_current_funding_rate(symbol)
+        open_interest = await get_open_interest(symbol, interval)
         if df is None:
             await status_msg.edit_text("Data fetch failed (symbol/network)")
             return
 
         df["rsi"] = calc_rsi(df["close"])
+        df["rsi7"] = calc_rsi(df["close"], period=7)
+        df["ema20"] = calc_ema(df["close"], span=20)
         df["macd"], df["macd_signal"], df["macd_hist"] = calc_macd(df["close"])
+        
+        df["bb_upper"], df["bb_mid"], df["bb_lower"] = calc_bollinger_bands(df["close"])
+        df["k"], df["d"], df["j"] = calc_kdj(df["high"], df["low"], df["close"])
 
         chart_buf = await asyncio.to_thread(generate_chart_image, df, symbol, interval)
 
         last_row = df.iloc[-1]
         patterns = detect_bearish_patterns(df)
 
-        result = await analyze_with_ai(chart_buf, symbol, interval, df, funding_rate, patterns, model=model)
+        result = await analyze_with_ai(symbol, interval, df, funding_rate, open_interest, patterns, model=model)
 
          
         # 6. Format and Send Report
         market_data = {
             'close': last_row['close'],
             'rsi': last_row['rsi'],
-            'funding_rate': funding_rate
+            'funding_rate': funding_rate,
+            'open_interest': open_interest
         }
         
         caption, full_report = NotificationService.format_report(symbol, interval, result, market_data)
