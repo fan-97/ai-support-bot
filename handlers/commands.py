@@ -12,6 +12,7 @@ from services.notification import NotificationService
 from utils.decorators import restricted
 from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
 from services.patterns import detect_bearish_patterns
+from tasks.monitor import is_monitor_paused
 
 
 
@@ -40,8 +41,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Main menu for commands and buttons."""
+    monitor_label = "▶️ Resume Monitor" if is_monitor_paused() else "⏸ Pause Monitor"
     keyboard = [
         [InlineKeyboardButton("📜 Watchlist", callback_data='list'), InlineKeyboardButton("🔄 Scan now", callback_data='scan')],
+        [InlineKeyboardButton(monitor_label, callback_data='toggle_monitor')],
         [InlineKeyboardButton("➕ Add symbol", callback_data='add_help'), InlineKeyboardButton("➖ Delete symbol", callback_data='del_help')],
         [InlineKeyboardButton("🤖 AI Analyze", callback_data='ai_help'), InlineKeyboardButton("🧠 AI Models", callback_data='models_menu')],
         [InlineKeyboardButton("🛡 Risk Help", callback_data='risk_help'), InlineKeyboardButton("⚙️ Settings", callback_data='set_help')],

@@ -1,3 +1,4 @@
+
 import asyncio
 import logging
 from telegram.ext import ContextTypes
@@ -11,8 +12,29 @@ from services.patterns import detect_bearish_patterns
 from services.confirmations import volume_confirmation, rsi_confirmation, macd_confirmation
 from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
 
+_monitor_paused = False
+
+
+def is_monitor_paused() -> bool:
+    return _monitor_paused
+
+
+def set_monitor_paused(paused: bool) -> None:
+    global _monitor_paused
+    _monitor_paused = paused
+
+
+def toggle_monitor_paused() -> bool:
+    global _monitor_paused
+    _monitor_paused = not _monitor_paused
+    return _monitor_paused
+
 
 async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
+    if is_monitor_paused():
+        logging.info("Monitor task is paused; skipping this cycle.")
+        return
+
     unique_pairs = get_all_unique_pairs()
     if not unique_pairs:
         return
@@ -66,7 +88,7 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
                 notify_message.append("No strong bearish signal")
 
             logging.info("\n".join(notify_message))
-
+            need_ai = True
             if need_ai:
                 try:
                     # chart = await asyncio.to_thread(generate_chart_image, df, sym, interval) # Image no longer needed

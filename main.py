@@ -30,7 +30,7 @@ if __name__ == '__main__':
     app.add_handler(CallbackQueryHandler(model_callback_handler, pattern="^m_"))
     app.add_handler(CallbackQueryHandler(button_handler))
 
-    app.job_queue.run_repeating(monitor_task, interval=60, first=5)
+    app.job_queue.run_repeating(monitor_task, interval=180, first=5)
 
     print("🚀 Bot started")
     app.run_polling()

@@ -30,6 +30,7 @@ DANGER_FUNDING_RATE = -0.05
 # Paths / endpoints
 DATA_FILE = 'watchlist.json'
 BASE_URL = "https://fapi.binance.com"
+KLINE_LIMIT = int(os.getenv('KLINE_LIMIT', '100'))
 
 # Default risk settings
 DEFAULT_BALANCE = 1000.0

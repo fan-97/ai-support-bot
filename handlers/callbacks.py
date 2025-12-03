@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 from services.storage import get_user_watchlist, remove_from_watchlist
 from handlers.commands import list_coins, start
 from handlers.model_handlers import models_command
-from tasks.monitor import monitor_task
+from tasks.monitor import monitor_task, toggle_monitor_paused, is_monitor_paused
 
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -28,8 +28,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("🔙 Back", callback_data="back"), InlineKeyboardButton("❌ Close", callback_data="close")]]
         await query.edit_message_text("⚙️ Set params:\nUse `/set 2000 3`", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
     elif query.data == 'scan':
-        await query.message.reply_text("⏳ Scanning...")
-        await monitor_task(context)
+        if is_monitor_paused():
+            await query.message.reply_text("⏸ 自动监控已暂停，请先恢复后再扫描。")
+        else:
+            await query.message.reply_text("⏳ Scanning...")
+            await monitor_task(context)
     elif query.data == 'add_help':
         keyboard = [[InlineKeyboardButton("🔙 Back", callback_data="back"), InlineKeyboardButton("❌ Close", callback_data="close")]]
         await query.edit_message_text("➕ Add:\nUse `/add BTC 1h`", reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
@@ -50,5 +53,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         sym = query.data.split('_')[1]
         remove_from_watchlist(update.effective_user.id, sym)
         await query.edit_message_text(f"Deleted {sym}")
+    elif query.data == 'toggle_monitor':
+        paused = toggle_monitor_paused()
+        status_text = "⏸ 自动监控已暂停" if paused else "✅ 自动监控已恢复"
+        await query.message.reply_text(status_text)
+        await start(update, context)
     elif query.data == 'back':
         await start(update, context)

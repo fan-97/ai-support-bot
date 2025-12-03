@@ -14,6 +14,7 @@ from config.settings import (
     SITE_URL,
     SITE_NAME,
     AI_TIMEOUT,
+    KLINE_LIMIT,
 )
 
 _openrouter_client = None
@@ -29,8 +30,8 @@ except Exception as e:
 
 def _build_user_message(symbol: str, interval: str, df, funding_rate: float, open_interest: float, patterns) -> str:
     """Build the user message with data sequences."""
-    # Get last 15 candles for sequence data
-    recent_df = df.tail(100)
+    # Number of candles considered is configurable
+    recent_df = df.tail(KLINE_LIMIT)
     
     # Format sequences
     dates = recent_df.index.strftime('%Y-%m-%d %H:%M').tolist()
@@ -65,7 +66,7 @@ Funding Rate: {funding_rate:.4f}%
 Open Interest: {open_interest}
 Detected Patterns: {patterns if patterns else "None"}
 
-**DATA SEQUENCES (Last 15 periods):**
+**DATA SEQUENCES (Last {len(recent_df)} periods):**
 Time: {dates}
 Close: {closes}
 High: {highs}
@@ -131,12 +132,12 @@ def _analyze_openrouter(user_msg: str, model: str = None) -> Dict[str, Any]:
     content = resp.choices[0].message.content.strip()
     logging.debug(f"AI raw content: {content}")
 
-    json_block_pattern = re.compile(r"```json\s*(\{.*?\})\s*```", re.IGNORECASE | re.DOTALL)
+    json_block_pattern = re.compile(r"```json\s*(\{.*\})\s*```", re.IGNORECASE | re.DOTALL)
     json_match = json_block_pattern.search(content)
     if json_match:
         json_text = json_match.group(1)
     else:
-        fallback_match = re.search(r"\{[\s\S]*\}", content)
+        fallback_match = re.search(r"\{.*\}", content, re.DOTALL)
         if not fallback_match:
             raise json.JSONDecodeError("No JSON object found in AI response", content, 0)
         json_text = fallback_match.group(0)

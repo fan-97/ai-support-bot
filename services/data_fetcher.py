@@ -4,7 +4,7 @@ from typing import Optional
 
 import httpx
 import pandas as pd
-from config.settings import BASE_URL, PROXY_URL
+from config.settings import BASE_URL, PROXY_URL, KLINE_LIMIT
 
 # HTTP client config (shared across calls)
 _PROXIES = PROXY_URL or None
@@ -25,7 +25,7 @@ async def _fetch_json(url: str, params: dict) -> Optional[list]:
     return None
 
 
-async def get_binance_klines(symbol: str, interval: str, limit: int = 200, market: str = "futures") -> Optional[pd.DataFrame]:
+async def get_binance_klines(symbol: str, interval: str, limit: int = KLINE_LIMIT, market: str = "futures") -> Optional[pd.DataFrame]:
     """Fetch Binance kline data asynchronously."""
     if market == "futures":
         base_url = f"{BASE_URL}/fapi/v1/klines"
@@ -69,7 +69,7 @@ async def get_current_funding_rate(symbol: str) -> float:
         return 0.0
 
     try:
-        return 100 * float(data.get("lastFundingRate", 0))
+        return float(data.get("lastFundingRate", 0))
     except Exception as exc:
         logging.error(f"Funding Rate parse error: {exc}")
         return 0.0

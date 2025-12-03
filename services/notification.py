@@ -1,6 +1,8 @@
 import logging
-from telegram.ext import ContextTypes
+
 from telegram import Update
+from telegram.ext import ContextTypes
+from telegram.helpers import escape_markdown
 
 class NotificationService:
     @staticmethod
@@ -14,7 +16,7 @@ class NotificationService:
         :param market_data: Dictionary containing 'close', 'rsi', 'funding_rate'
         :return: (short_caption, full_report)
         """
-        decision = result.get('decision', 'hold').upper()
+        decision = (result.get('decision', 'hold') or 'hold').upper()
         confidence = result.get('confidence', 0)
         reasoning = result.get('reasoning', 'N/A')
         analysis_process = result.get('analysis_process', 'N/A')
@@ -25,15 +27,23 @@ class NotificationService:
         leverage = result.get('leverage') or 0
 
         current_price = market_data.get('close', 0)
+        rsi_value = f"{market_data.get('rsi', 0):.1f}"
+        funding_value = f"{market_data.get('funding_rate', 0):.4f}%"
+        oi_value = f"{market_data.get('open_interest', 0):.0f}"
 
         def _format_level(level):
             if level is None:
                 return "N/A"
             try:
                 value = float(level)
-                return f"`{value}`"
+                return f"{value}"
             except (TypeError, ValueError):
-                return f"`{level}`"
+                return str(level)
+
+        def _md(value):
+            if value is None:
+                return "N/A"
+            return escape_markdown(str(value), version=1)
 
         sl_info = _format_level(stop_loss)
         tp_info = _format_level(take_profit)
@@ -48,37 +58,39 @@ class NotificationService:
         
         # Short caption (for image)
         short_caption = (
-            f"🤖 **AI 交易计划** | {symbol} {interval}\n"
+            f"🤖 **AI 交易计划** | {_md(symbol)} {_md(interval)}\n"
             f"---------------------------\n"
-            f"🚀 **操作**: {decision} {emoji} (信心: {confidence})\n"
-            f"💰 **仓位**: `{position_size_usd:.0f}U` ({leverage:.1f}x)\n"
-            f"🛑 **止损**: {sl_info}\n"
-            f"🎯 **止盈**: {tp_info}\n"
+            f"🚀 **操作**: {_md(decision)} {emoji} (信心: {_md(confidence)})\n"
+            f"💰 **仓位**: {_md(f'{position_size_usd:.0f}U')} ({_md(f'{leverage:.1f}x')})\n"
+            f"🛑 **止损**: {_md(sl_info)}\n"
+            f"🎯 **止盈**: {_md(tp_info)}\n"
             f"⬇️ _查看下方详细逻辑_"
         )
         
         # Full report (text message)
         full_report = (
-            f"📄 **{symbol} 深度研报**\n"
+            f"📄 **{_md(symbol)} 深度研报**\n"
             f"-------------------------------\n"
+            f"📊 **分析流程**:\n"
+            f"{_md(analysis_process)}\n"
             f"-------------------------------\n"
             f"📊 **市场数据**:\n"
-            f"• 现价: `{current_price}`\n"
-            f"• RSI: `{market_data.get('rsi', 0):.1f}`\n"
-            f"• 费率: `{market_data.get('funding_rate', 0):.4f}%`\n"
-            f"• 持仓: `{market_data.get('open_interest', 0):.0f}`\n"
+            f"• 现价: {_md(current_price)}\n"
+            f"• RSI: {_md(rsi_value)}\n"
+            f"• 费率: {_md(funding_value)}\n"
+            f"• 持仓: {_md(oi_value)}\n"
             f"-------------------------------\n"
-            f"**AI 模型**: {result.get('ai_model', 'N/A')}\n" 
-            f"💡 **AI 结论**:\n• {reasoning}\n"
+            f"**AI 模型**: {_md(result.get('ai_model', 'N/A'))}\n"
+            f"💡 **AI 结论**:\n• {_md(reasoning)}\n"
             f"-------------------------------\n"
             f"👁️ **关注区间**:\n"
-            f"• 阻力: {', '.join(resistance_levels) if resistance_levels else 'N/A'}\n"
-            f"• 支撑: {', '.join(support_levels) if support_levels else 'N/A'}\n"
+            f"• 阻力: {_md(', '.join(resistance_levels) if resistance_levels else 'N/A')}\n"
+            f"• 支撑: {_md(', '.join(support_levels) if support_levels else 'N/A')}\n"
             f"-------------------------------\n"
             f"🧮 **仓位建议**:\n"
-            f"• 名义价值: `{position_size_usd:.1f}U`\n"
-            f"• 杠杆倍数: `{leverage:.1f}x`\n"
-            f"• 止损/止盈: {sl_info} / {tp_info}\n"
+            f"• 名义价值: {_md(f'{position_size_usd:.1f}U')}\n"
+            f"• 杠杆倍数: {_md(f'{leverage:.1f}x')}\n"
+            f"• 止损/止盈: {_md(sl_info)} / {_md(tp_info)}\n"
         )
         
         return short_caption, full_report
