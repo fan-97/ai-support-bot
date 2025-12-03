@@ -71,6 +71,9 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
                 try:
                     # chart = await asyncio.to_thread(generate_chart_image, df, sym, interval) # Image no longer needed
                     result = await analyze_with_ai(sym, interval, df, funding, open_interest, patterns=patterns)
+                    if result.get('decision') == 'hold':
+                        logging.info(f"[{sym} {interval}] AI decision is hold, skipping notification")
+                        continue
                     # 6. Format and Send Report
                     market_data = {
                         'close': last_row['close'],

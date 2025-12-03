@@ -1,52 +1,54 @@
 # Agents
 
-This document defines the AI agents and logical components within the AI Support Bot ecosystem.
+本文档定义了 AI Support Bot 生态中的各个 AI 代理和逻辑组件。
 
-## 1. Crypto Analyst Agent (Core)
+## 1. 加密分析代理（核心）
 
-**Role**: Senior Cryptocurrency Trader & Technical Analyst
-**Responsibilities**:
+**角色**：资深加密货币交易员与技术分析师  
+**职责**：
+- 利用 RSI、MACD、布林带等技术指标分析市场趋势。
+- 识别蜡烛图形态（如锤子线、射击之星）。
+- 提供可执行的交易信号（入场、止损、止盈）。
+- 生成全面的市场报告。
 
-- Analyze market trends using technical indicators (RSI, MACD, Bollinger Bands).
-- Identify candlestick patterns (e.g., Hammer, Shooting Star).
-- Provide actionable trading signals (Entry, Stop Loss, Take Profit).
-- Generate comprehensive market reports.
-  **Tools**:
-- `services/ai_service.py`: Main interface for AI analysis.
-- `services/indicators.py`: Technical analysis calculations.
-- `services/patterns.py`: Pattern recognition logic.
-- `services/charting.py`: Visualizing market data.
+**工具**：
+- `services/ai_service.py`：AI 分析的主要接口。
+- `services/indicators.py`：技术指标计算。
+- `services/patterns.py`：形态识别逻辑。
+- `services/charting.py`：市场数据可视化。
 
-## 2. Market Monitor Agent (Background)
+## 2. 市场监控代理（后台）
 
-**Role**: 24/7 Market Watchdog
-**Responsibilities**:
+**角色**：7×24 小时市场看护者  
+**职责**：
+- 持续监控关注列表中的标的。
+- 实时检测价格波动与技术信号。
+- 当达到预设条件时触发警报。
 
-- Continuously monitor watchlist symbols.
-- Detect price movements and technical signals in real-time.
-- Trigger alerts when pre-defined conditions are met.
-  **Tools**:
-- `tasks/monitor.py`: Scheduled monitoring task.
-- `services/data_fetcher.py`: Real-time data acquisition.
+**工具**：
+- `tasks/monitor.py`：定时监控任务。
+- `services/data_fetcher.py`：实时数据获取。
 
-## 3. Risk Manager Agent
+## 3. 风险管理代理
 
-**Role**: Position Sizing & Risk Control Specialist
-**Responsibilities**:
+**角色**：仓位控制与风险管理专家  
+**职责**：
+- 根据账户余额和风险承受能力计算最佳仓位。
+- 建议合适的杠杆设置。
+- 确保交易符合用户定义的风险参数。
 
-- Calculate optimal position sizes based on account balance and risk tolerance.
-- Suggest leverage settings.
-- Ensure trades align with user-defined risk parameters.
-  **Tools**:
-- `handlers/commands.py` (`set_risk`, `calc_position`): User interaction for risk settings.
+**工具**：
+- `handlers/commands.py`（`set_risk`、`calc_position`）：用于风险设置的用户交互。
 
-## 4. Notification Agent
+## 4. 通知代理
 
-**Role**: Communication Bridge
-**Responsibilities**:
+**角色**：通信桥梁  
+**职责**：
+- 通过 Telegram 格式化并发送警报。
+- 处理用户交互和指令路由。
 
-- Format and deliver alerts to users via Telegram.
-- Handle user interactions and command routing.
-  **Tools**:
-- `services/notification.py`: Message formatting and delivery.
-- `handlers/`: Command and callback handling.
+**工具**：
+- `services/notification.py`：消息格式化与发送。
+- `handlers/`：指令与回调处理。
+
+每次回答使用中文

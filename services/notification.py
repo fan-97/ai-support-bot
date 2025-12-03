@@ -14,67 +14,46 @@ class NotificationService:
         :param market_data: Dictionary containing 'close', 'rsi', 'funding_rate'
         :return: (short_caption, full_report)
         """
-        trend = result.get('trend', 'N/A')
-        pattern = result.get('pattern', 'N/A')
-        score = result.get('score', 0)
-        action = result.get('action', 'WAIT').upper()
-        reason = result.get('reason', 'N/A')
-        
-        # Parse trade setup
-        setup = result.get('trade_setup', {})
-        sl_price = setup.get('sl', 0)
-        tp_price = setup.get('tp', 0)
-        rr_ratio = setup.get('rr_ratio', 0)
-        entry_price = setup.get('entry', market_data.get('close', 0))
-        
-        # Calculate percentage distance
-        current_price = market_data.get('close', 0)
-        sl_info = "N/A"
-        tp_info = "N/A"
-        
-        # Position Calculation (Fixed 100 USDT Principal)
-        PRINCIPAL = 100.0
-        MARGIN_RATE = 0.88
-        available_margin = PRINCIPAL * MARGIN_RATE
-        position_size_usd = 0
-        leverage = 1
-        actual_coins = 0
-        
-        if sl_price and sl_price > 0 and entry_price > 0:
-            sl_pct = (sl_price - entry_price) / entry_price * 100
-            sign = "+" if sl_pct > 0 else ""
-            sl_info = f"`{sl_price}` ({sign}{sl_pct:.2f}%)"
-            
-            # Calculate Position Size
-            # Strategy: Risk 3% of principal per trade
-            dist_pct = abs(entry_price - sl_price) / entry_price
-            if dist_pct > 0:
-                risk_amount = PRINCIPAL * 0.03 
-                position_size_usd = risk_amount / dist_pct
-                # Cap leverage to max 20x to be safe? Or just raw calc?
-                # Let's raw calc but ensure available margin covers it
-                leverage = position_size_usd / available_margin
-                if leverage < 1: leverage = 1
-                actual_coins = position_size_usd / entry_price
-            
-        if tp_price and tp_price > 0 and entry_price > 0:
-            tp_pct = (tp_price - entry_price) / entry_price * 100
-            sign = "+" if tp_pct > 0 else ""
-            tp_info = f"`{tp_price}` ({sign}{tp_pct:.2f}%)"
+        decision = result.get('decision', 'hold').upper()
+        confidence = result.get('confidence', 0)
+        reasoning = result.get('reasoning', 'N/A')
+        analysis_process = result.get('analysis_process', 'N/A')
 
-        # Build message content
-        emoji = "🔥" if score >= 8 else "🤔"
-        if action == "WAIT": emoji = "⏳"
+        stop_loss = result.get('stop_loss')
+        take_profit = result.get('take_profit')
+        position_size_usd = result.get('position_size_usd') or 0
+        leverage = result.get('leverage') or 0
+
+        current_price = market_data.get('close', 0)
+
+        def _format_level(level):
+            if level is None:
+                return "N/A"
+            try:
+                value = float(level)
+                return f"`{value}`"
+            except (TypeError, ValueError):
+                return f"`{level}`"
+
+        sl_info = _format_level(stop_loss)
+        tp_info = _format_level(take_profit)
+
+        next_levels = result.get('next_watch_levels', {})
+        resistance_levels = [str(level) for level in next_levels.get('resistance', [])]
+        support_levels = [str(level) for level in next_levels.get('support', [])]
+
+        emoji = "🔥" if confidence >= 80 else "🤔"
+        if decision == "HOLD":
+            emoji = "⏳"
         
         # Short caption (for image)
         short_caption = (
             f"🤖 **AI 交易计划** | {symbol} {interval}\n"
             f"---------------------------\n"
-            f"🚀 **操作**: {action} {emoji} (信心: {score})\n"
+            f"🚀 **操作**: {decision} {emoji} (信心: {confidence})\n"
             f"💰 **仓位**: `{position_size_usd:.0f}U` ({leverage:.1f}x)\n"
             f"🛑 **止损**: {sl_info}\n"
             f"🎯 **止盈**: {tp_info}\n"
-            f"⚖️ **盈亏比**: `{rr_ratio}`\n"
             f"⬇️ _查看下方详细逻辑_"
         )
         
@@ -82,8 +61,6 @@ class NotificationService:
         full_report = (
             f"📄 **{symbol} 深度研报**\n"
             f"-------------------------------\n"
-            f"📈 **当前趋势**: {trend}\n"
-            f"👀 **识别形态**: {pattern}\n"
             f"-------------------------------\n"
             f"📊 **市场数据**:\n"
             f"• 现价: `{current_price}`\n"
@@ -91,13 +68,17 @@ class NotificationService:
             f"• 费率: `{market_data.get('funding_rate', 0):.4f}%`\n"
             f"• 持仓: `{market_data.get('open_interest', 0):.0f}`\n"
             f"-------------------------------\n"
-            f"💡 **AI 逻辑分析**:\n• {reason}\n"
+            f"**AI 模型**: {result.get('ai_model', 'N/A')}\n" 
+            f"💡 **AI 结论**:\n• {reasoning}\n"
             f"-------------------------------\n"
-            f"🧮 **建议仓位 (本金100U)**:\n"
-            f"• 保证金: `{available_margin:.1f}U`\n"
+            f"👁️ **关注区间**:\n"
+            f"• 阻力: {', '.join(resistance_levels) if resistance_levels else 'N/A'}\n"
+            f"• 支撑: {', '.join(support_levels) if support_levels else 'N/A'}\n"
+            f"-------------------------------\n"
+            f"🧮 **仓位建议**:\n"
             f"• 名义价值: `{position_size_usd:.1f}U`\n"
             f"• 杠杆倍数: `{leverage:.1f}x`\n"
-            f"• 开仓数量: `{actual_coins:.4f} {symbol.replace('USDT','')}`\n"
+            f"• 止损/止盈: {sl_info} / {tp_info}\n"
         )
         
         return short_caption, full_report

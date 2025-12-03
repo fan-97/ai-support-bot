@@ -191,7 +191,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         df["bb_upper"], df["bb_mid"], df["bb_lower"] = calc_bollinger_bands(df["close"])
         df["k"], df["d"], df["j"] = calc_kdj(df["high"], df["low"], df["close"])
 
-        chart_buf = await asyncio.to_thread(generate_chart_image, df, symbol, interval)
+        # chart_buf = await asyncio.to_thread(generate_chart_image, df, symbol, interval)
 
         last_row = df.iloc[-1]
         patterns = detect_bearish_patterns(df)
@@ -209,7 +209,7 @@ async def manual_ai_analyze(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         caption, full_report = NotificationService.format_report(symbol, interval, result, market_data)
         
-        await NotificationService.reply_telegram_report(update, chart_buf, caption, full_report)
+        await NotificationService.reply_telegram_report(update, None, caption, full_report)
         await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=status_msg.message_id)
 
     except Exception as e:

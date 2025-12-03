@@ -69,7 +69,7 @@ async def get_current_funding_rate(symbol: str) -> float:
         return 0.0
 
     try:
-        return float(data.get("lastFundingRate", 0))
+        return 100 * float(data.get("lastFundingRate", 0))
     except Exception as exc:
         logging.error(f"Funding Rate parse error: {exc}")
         return 0.0

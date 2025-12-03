@@ -67,6 +67,24 @@
 1. 分析技术指标
 2. 评估持仓
 3. 输出决策: 思维链分析 + JSON
+4. JSON 格式：
+{
+    "decision": "decision",
+    "confidence": confidence,
+    "reasoning": "reasoning",
+    "next_watch_levels": {
+        "resistance": [
+           
+        ],
+        "support": [
+           
+        ]
+    },
+    "position_size_usd": 0,
+    "leverage": 0,
+    "stop_loss": null,
+    "take_profit": null
+}
 
 # 仓位大小计算
 
@@ -92,3 +110,4 @@
 
 - 宁可错过，不做低质量交易
 - 风险回报比 1:3 是底线
+- 使用中文回答我,我会将数据集发送给你

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any, Dict
 
@@ -29,7 +30,7 @@ except Exception as e:
 def _build_user_message(symbol: str, interval: str, df, funding_rate: float, open_interest: float, patterns) -> str:
     """Build the user message with data sequences."""
     # Get last 15 candles for sequence data
-    recent_df = df.tail(15)
+    recent_df = df.tail(100)
     
     # Format sequences
     dates = recent_df.index.strftime('%Y-%m-%d %H:%M').tolist()
@@ -126,19 +127,41 @@ def _analyze_openrouter(user_msg: str, model: str = None) -> Dict[str, Any]:
             temperature=0.3,
     )
     logging.info(f"AI response: {resp}")
-    raw_text = resp.choices[0].message.content.replace("```json", "").replace("```", "").strip()
-    return json.loads(raw_text)
+
+    content = resp.choices[0].message.content.strip()
+    logging.debug(f"AI raw content: {content}")
+
+    json_block_pattern = re.compile(r"```json\s*(\{.*?\})\s*```", re.IGNORECASE | re.DOTALL)
+    json_match = json_block_pattern.search(content)
+    if json_match:
+        json_text = json_match.group(1)
+    else:
+        fallback_match = re.search(r"\{[\s\S]*\}", content)
+        if not fallback_match:
+            raise json.JSONDecodeError("No JSON object found in AI response", content, 0)
+        json_text = fallback_match.group(0)
+
+    reasoning_text = json_block_pattern.sub("", content).strip()
+
+    result = json.loads(json_text)
+    result['ai_model'] = use_model
+    if reasoning_text:
+        result.setdefault("analysis_process", reasoning_text)
+        result["raw_reasoning"] = reasoning_text
+    return result
 
 
 def _fallback_response(reason: str) -> Dict[str, Any]:
     return {
-        "trend": "Neutral",
-        "pattern": "Error",
-        "key_levels": "N/A",
-        "score": 0,
-        "reason": reason,
-        "action": "WAIT",
-        "confidence": 0.0,
+        "analysis_process": "N/A",
+        "decision": "hold",
+        "confidence": 0,
+        "reasoning": reason,
+        "next_watch_levels": {"resistance": [], "support": []},
+        "position_size_usd": 0,
+        "leverage": 0,
+        "stop_loss": None,
+        "take_profit": None,
     }
 
 
@@ -148,7 +171,6 @@ async def analyze_with_ai(symbol: str, interval: str, df, funding_rate: float, o
     model: Optional model override (e.g. "google/gemini-flash-1.5")
     """
     user_msg = _build_user_message(symbol, interval, df, funding_rate, open_interest, patterns)
-
     try:
         return await asyncio.to_thread(_analyze_openrouter, user_msg, model)
     except json.JSONDecodeError as exc:
