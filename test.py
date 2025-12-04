@@ -10,7 +10,7 @@ from services.patterns import detect_bearish_patterns
 from services.ai_service import analyze_with_ai
 
 
-SYMBOL = "TURBOUSDT"
+SYMBOL = "PIPPINUSDT"
 INTERVAL = "15m"
 
 
@@ -39,7 +39,7 @@ async def main():
         funding_rate,
         open_interest,
         patterns,
-        model="google/gemini-2.5-flash",
+        model="deepseek/deepseek-v3.2",
     )
     print(result)
 
