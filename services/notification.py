@@ -34,6 +34,7 @@ class NotificationService:
         funding_value = mark_data.get('funding_rate')
         oi_value = mark_data.get('open_interest')
         ai_model = result.get('ai_model')
+        pattern = result.get('pattern', 'N/A')
 
         def _format_level(level):
             if level is None:
@@ -88,6 +89,7 @@ class NotificationService:
             f"• 费率: {_md(funding_value)}\n"
             f"• 持仓: {_md(oi_value)}\n"
             f"• AI模型: {_md(ai_model)}\n"
+            f"• K线形态: {_md(pattern)}\n"
             f"-------------------------------\n"
             f"🧮 **交易计划**:\n"
             f"• 入场区间: {_md(entry_zone)}\n"

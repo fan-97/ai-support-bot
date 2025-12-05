@@ -46,6 +46,9 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
 
             if df is None:
                 raise RuntimeError("Data fetch failed (symbol/network)")
+            if not detect_bearish_patterns(df):
+                logging.info(f"[{sym} {interval}] Bearish pattern detected, skipping notification")
+                continue
             try:
                 result = await analyze_with_ai(sym, interval, df,df_btc, balance=1000)
                 if result.get('decision') == 'HOLD':

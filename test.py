@@ -19,7 +19,9 @@ async def main():
 
     if df is None:
         raise RuntimeError("Data fetch failed (symbol/network)")
-
+    if not detect_bearish_patterns(df):
+        print(f"[{SYMBOL} {INTERVAL}] Bearish pattern detected, skipping notification")
+        return
     result = await analyze_with_ai(
         SYMBOL,
         INTERVAL,

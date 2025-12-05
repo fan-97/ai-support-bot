@@ -103,9 +103,10 @@
       "TP1 价格",
       "TP2 价格"
     ],
+    "pattern": "分析当前K线形态，如射击之星、锤头、十字星等",
     "leverage": "整数",
     "position_size_usd": "保证金(USDT)",
-    "reasoning_for_size": "解释为何使用该仓位大小"
+    "reasoning_for_size": "为什么要做这笔交易的理由"
   }
 }
 ```
