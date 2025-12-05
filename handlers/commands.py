@@ -11,7 +11,7 @@ from services.ai_service import analyze_with_ai
 from services.notification import NotificationService
 from utils.decorators import restricted
 from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
-from services.patterns import detect_bearish_patterns
+from services.patterns import CandlePatternDetector
 from tasks.monitor import is_monitor_paused
 
 
