@@ -4,6 +4,7 @@ from typing import Optional
 
 import httpx
 import pandas as pd
+import numpy as np
 from config.settings import BASE_URL, PROXY_URL, KLINE_LIMIT
 
 # HTTP client config (shared across calls)
@@ -69,13 +70,13 @@ async def get_current_funding_rate(symbol: str) -> float:
         return 0.0
 
     try:
-        return float(data.get("lastFundingRate", 0))
+        return 100*float(data.get("lastFundingRate", 0))
     except Exception as exc:
         logging.error(f"Funding Rate parse error: {exc}")
         return 0.0
 
 
-async def get_open_interest(symbol: str, interval: str) -> float:
+async def get_open_interest(symbol: str) -> float:
     """Fetch current Open Interest (Futures)."""
     url = f"{BASE_URL}/fapi/v1/openInterest"
     params = {"symbol": symbol}
@@ -89,3 +90,57 @@ async def get_open_interest(symbol: str, interval: str) -> float:
     except Exception as exc:
         logging.error(f"Open Interest parse error: {exc}")
         return 0.0
+
+
+async def prepare_market_data_for_ai(symbol: str, interval: str) -> tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    """
+    Fetch and prepare market data for AI analysis.
+    Returns (df, df_btc).
+    """
+    # Parallel fetch
+    results = await asyncio.gather(
+        get_binance_klines(symbol, interval=interval),
+        get_current_funding_rate(symbol),
+        get_open_interest(symbol),
+        get_binance_klines("BTCUSDT", interval=interval),
+        return_exceptions=True
+    )
+
+    df = results[0]
+    funding_rate = results[1]
+    open_interest = results[2]
+    df_btc = results[3]
+
+    # Check for errors in critical data
+    if isinstance(df, Exception) or df is None:
+        logging.error(f"Failed to fetch klines for {symbol}: {df}")
+        return None, None
+    
+    if isinstance(df_btc, Exception) or df_btc is None:
+        logging.warning(f"Failed to fetch BTC klines: {df_btc}")
+        # We might proceed without BTC data or handle it upstream, 
+        # but for now let's return None to be safe if it's required
+        # or maybe just log it. The original code didn't explicitly handle df_btc failure 
+        # other than potentially crashing. Let's return None for safety.
+        return None, None
+
+    # Handle other results being exceptions (defaults are 0.0 in original functions but gather returns Exception if raised)
+    # Our get_current_funding_rate and get_open_interest swallow errors and return 0.0, 
+    # so they shouldn't be Exceptions unless something really weird happens.
+    if isinstance(funding_rate, Exception): funding_rate = 0.0
+    if isinstance(open_interest, Exception): open_interest = 0.0
+
+    # Apply mock high/low logic (from user's code)
+    # Note: Using numpy for random generation as in original code
+    try:
+        df['high'] = df[['open', 'close']].max(axis=1) + np.random.uniform(0, 50, len(df))
+        df['low'] = df[['open', 'close']].min(axis=1) - np.random.uniform(0, 50, len(df))
+    except Exception as e:
+        logging.error(f"Error generating mock high/low: {e}")
+        # Fallback to existing high/low if calculation fails
+        pass
+
+    df['funding_rate'] = funding_rate
+    df['open_interest'] = open_interest
+
+    return df, df_btc

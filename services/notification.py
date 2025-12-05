@@ -6,30 +6,34 @@ from telegram.helpers import escape_markdown
 
 class NotificationService:
     @staticmethod
-    def format_report(symbol, interval, result, market_data):
+    def format_report(symbol, interval, result):
         """
         Format the AI analysis result into a caption and a full report.
         
         :param symbol: Trading pair symbol (e.g., BTCUSDT)
         :param interval: Timeframe (e.g., 1h)
         :param result: Dictionary returned by AI analysis
-        :param market_data: Dictionary containing 'close', 'rsi', 'funding_rate'
         :return: (short_caption, full_report)
         """
         decision = (result.get('decision', 'hold') or 'hold').upper()
-        confidence = result.get('confidence', 0)
-        reasoning = result.get('reasoning', 'N/A')
-        analysis_process = result.get('analysis_process', 'N/A')
+        confidence = result.get('confidence_score', 0)
+        
+        market_context = result.get('market_context', 'N/A')
+        signal_analysis = result.get('signal_analysis', {})
+        trade_plan = result.get('trade_plan', {})
 
-        stop_loss = result.get('stop_loss')
-        take_profit = result.get('take_profit')
-        position_size_usd = result.get('position_size_usd') or 0
-        leverage = result.get('leverage') or 0
-
-        current_price = market_data.get('close', 0)
-        rsi_value = f"{market_data.get('rsi', 0):.1f}"
-        funding_value = f"{market_data.get('funding_rate', 0):.4f}%"
-        oi_value = f"{market_data.get('open_interest', 0):.0f}"
+        stop_loss = trade_plan.get('stop_loss_price')
+        take_profit_levels = trade_plan.get('take_profit_levels', [])
+        position_size_usd = trade_plan.get('position_size_usd') or 0
+        leverage = trade_plan.get('leverage') or 0
+        entry_zone = trade_plan.get('entry_zone', 'N/A')
+        reasoning_size = trade_plan.get('reasoning_for_size', 'N/A')
+        mark_data = result.get('market_data', {})
+        current_price = mark_data.get('close')
+        rsi_value = mark_data.get('rsi')
+        funding_value = mark_data.get('funding_rate')
+        oi_value = mark_data.get('open_interest')
+        ai_model = result.get('ai_model')
 
         def _format_level(level):
             if level is None:
@@ -46,13 +50,13 @@ class NotificationService:
             return escape_markdown(str(value), version=1)
 
         sl_info = _format_level(stop_loss)
-        tp_info = _format_level(take_profit)
+        
+        if isinstance(take_profit_levels, list):
+            tp_info = ", ".join([_format_level(tp) for tp in take_profit_levels])
+        else:
+            tp_info = _format_level(take_profit_levels)
 
-        next_levels = result.get('next_watch_levels', {})
-        resistance_levels = [str(level) for level in next_levels.get('resistance', [])]
-        support_levels = [str(level) for level in next_levels.get('support', [])]
-
-        emoji = "🔥" if confidence >= 80 else "🤔"
+        emoji = "🔥" if isinstance(confidence, (int, float)) and confidence >= 80 else "🤔"
         if decision == "HOLD":
             emoji = "⏳"
         
@@ -61,7 +65,7 @@ class NotificationService:
             f"🤖 **AI 交易计划** | {_md(symbol)} {_md(interval)}\n"
             f"---------------------------\n"
             f"🚀 **操作**: {_md(decision)} {emoji} (信心: {_md(confidence)})\n"
-            f"💰 **仓位**: {_md(f'{position_size_usd:.0f}U')} ({_md(f'{leverage:.1f}x')})\n"
+            f"💰 **仓位**: {_md(f'{position_size_usd}U')} ({_md(f'{leverage}x')})\n"
             f"🛑 **止损**: {_md(sl_info)}\n"
             f"🎯 **止盈**: {_md(tp_info)}\n"
             f"⬇️ _查看下方详细逻辑_"
@@ -71,26 +75,27 @@ class NotificationService:
         full_report = (
             f"📄 **{_md(symbol)} 深度研报**\n"
             f"-------------------------------\n"
-            f"📊 **分析流程**:\n"
-            #f"{_md(analysis_process)}\n"
-            #f"-------------------------------\n"
+            f"🌍 **市场背景**: {_md(market_context)}\n"
+            f"-------------------------------\n"
+            f"📊 **信号分析**:\n"
+            f"• 技术面: {_md(signal_analysis.get('technical', 'N/A'))}\n"
+            f"• 量能/OI: {_md(signal_analysis.get('volume_oi', 'N/A'))}\n"
+            f"• 情绪面: {_md(signal_analysis.get('sentiment', 'N/A'))}\n"
+            f"-------------------------------\n"
             f"📊 **市场数据**:\n"
             f"• 现价: {_md(current_price)}\n"
             f"• RSI: {_md(rsi_value)}\n"
             f"• 费率: {_md(funding_value)}\n"
             f"• 持仓: {_md(oi_value)}\n"
+            f"• AI模型: {_md(ai_model)}\n"
             f"-------------------------------\n"
-            f"**AI 模型**: {_md(result.get('ai_model', 'N/A'))}\n"
-            f"💡 **AI 结论**:\n• {_md(reasoning)}\n"
-            f"-------------------------------\n"
-            f"👁️ **关注区间**:\n"
-            f"• 阻力: {_md(', '.join(resistance_levels) if resistance_levels else 'N/A')}\n"
-            f"• 支撑: {_md(', '.join(support_levels) if support_levels else 'N/A')}\n"
-            f"-------------------------------\n"
-            f"🧮 **仓位建议**:\n"
-            f"• 名义价值: {_md(f'{position_size_usd:.1f}U')}\n"
-            f"• 杠杆倍数: {_md(f'{leverage:.1f}x')}\n"
-            f"• 止损/止盈: {_md(sl_info)} / {_md(tp_info)}\n"
+            f"🧮 **交易计划**:\n"
+            f"• 入场区间: {_md(entry_zone)}\n"
+            f"• 止损价格: {_md(sl_info)}\n"
+            f"• 止盈目标: {_md(tp_info)}\n"
+            f"• 杠杆倍数: {_md(f'{leverage}x')}\n"
+            f"• 名义价值: {_md(f'{position_size_usd}U')}\n"
+            f"• 仓位逻辑: {_md(reasoning_size)}\n"
         )
         
         return short_caption, full_report

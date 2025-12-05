@@ -6,3 +6,4 @@ pandas==2.3.3
 Pillow==12.0.0
 python-dotenv==1.2.1
 python-telegram-bot[job-queue]==22.5
+pandas-ta
