@@ -94,7 +94,7 @@ class NotificationService:
             f"• 止损价格: {_md(sl_info)}\n"
             f"• 止盈目标: {_md(tp_info)}\n"
             f"• 杠杆倍数: {_md(f'{leverage}x')}\n"
-            f"• 名义价值: {_md(f'{position_size_usd}U')}\n"
+            f"• 保证金: {_md(f'{position_size_usd}U')}\n"
             f"• 仓位逻辑: {_md(reasoning_size)}\n"
         )
         
