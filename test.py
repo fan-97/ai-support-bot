@@ -2,15 +2,13 @@ import asyncio
 import json
 
 from services.data_fetcher import prepare_market_data_for_ai
-from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
-from services.patterns import detect_bearish_patterns
 from services.ai_service import analyze_with_ai
-from services.data_processor import CryptoDataProcessor
+from services.patterns import CandlePatternDetector
 from services.notification import NotificationService
 
 
-SYMBOL = "TURBOUSDT"
-INTERVAL = "15m"
+SYMBOL = "ETHUSDT"
+INTERVAL = "4h"
 
 
 async def main():
@@ -19,7 +17,10 @@ async def main():
 
     if df is None:
         raise RuntimeError("Data fetch failed (symbol/network)")
-    if not detect_bearish_patterns(df):
+    # 出现看跌或者看涨形态的时候才进行AI分析
+    detector  = CandlePatternDetector(df)
+    match,pattern = detector.detect_patterns()
+    if not match:
         print(f"[{SYMBOL} {INTERVAL}] Bearish pattern detected, skipping notification")
         return
     result = await analyze_with_ai(
@@ -30,6 +31,7 @@ async def main():
         balance=1000,
         model="deepseek/deepseek-v3.2",
     )
+    print(result)
     caption, full_report = NotificationService.format_report(SYMBOL, INTERVAL, result)
     print(caption)
     print(full_report)  
