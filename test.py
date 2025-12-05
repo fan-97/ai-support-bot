@@ -9,8 +9,8 @@ from services.data_processor import CryptoDataProcessor
 from services.notification import NotificationService
 
 
-SYMBOL = "TURBOUSDT"
-INTERVAL = "15m"
+SYMBOL = "SAPIENUSDT"
+INTERVAL = "5m"
 
 
 async def main():
