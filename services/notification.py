@@ -113,7 +113,8 @@ class NotificationService:
                 await bot.send_photo(chat_id=chat_id, photo=chart_buf, caption=caption, parse_mode='Markdown')
             else:
                 await bot.send_message(chat_id=chat_id, text=caption, parse_mode='Markdown')
-            await bot.send_message(chat_id=chat_id, text=full_report, parse_mode='Markdown')
+            if full_report:
+                await bot.send_message(chat_id=chat_id, text=full_report, parse_mode='Markdown')
         except Exception as e:
             logging.error(f"Failed to send Telegram report to {chat_id}: {e}")
 

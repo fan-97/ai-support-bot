@@ -23,6 +23,34 @@ class PatternRecognizer:
             'open': row['open'], 'close': row['close'], 'high': row['high'], 'low': row['low'],
             'body': body, 'upper': upper, 'lower': lower, 'mid': mid, 'is_green': is_green
         }
+    def detect_patterns(self):
+        patterns = []
+        for i in range(len(self.df)):
+            if self.is_hammer(i):
+                patterns.append('Hammer')
+            elif self.is_inverse_hammer(i):
+                patterns.append('Inverse Hammer')
+            elif self.is_bullish_engulfing(i):
+                patterns.append('Bullish Engulfing')
+            elif self.is_piercing_line(i):
+                patterns.append('Piercing Line')
+            elif self.is_morning_star(i):
+                patterns.append('Morning Star')
+            elif self.is_three_white_soldiers(i):
+                patterns.append('Three White Soldiers')
+            elif self.is_hanging_man(i):
+                patterns.append('Hanging Man')
+            elif self.is_shooting_star(i):
+                patterns.append('Shooting Star')
+            elif self.is_bearish_engulfing(i):
+                patterns.append('Bearish Engulfing')
+            elif self.is_evening_star(i):
+                patterns.append('Evening Star')
+            elif self.is_three_black_crows(i):
+                patterns.append('Three Black Crows')
+            elif self.is_dark_cloud_cover(i):
+                patterns.append('Dark Cloud Cover')
+        return patterns
 
     # --- 看涨形态 (Bullish) ---
 
