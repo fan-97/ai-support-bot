@@ -63,7 +63,7 @@ async def reversal_monitor(sym, interval):
         return caption, None
     except Exception as e:
         logging.exception(f"[{sym} {interval}] Reversal monitor error: {e}")
-def monitor_ai_analysis():
+async def monitor_ai_analysis(sym, interval):
     # 获取指标
     df, df_btc = await prepare_market_data_for_ai(sym, interval)
 
@@ -73,12 +73,12 @@ def monitor_ai_analysis():
     match,pattern = detector.detect_patterns()
     if not match:
         logging.info(f"[{sym} {interval}] Bearish pattern detected, skipping notification")
-        continue
+        return
     try:
         result = await analyze_with_ai(sym, interval, df,df_btc, balance=1000)
         if result.get('decision') == 'HOLD':
             logging.info(f"[{sym} {interval}] AI decision is hold, skipping notification")
-            continue
+            return 
         caption, full_report = NotificationService.format_report(sym, interval, result)
         return caption, full_report
     except Exception as e:
