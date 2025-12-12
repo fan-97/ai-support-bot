@@ -6,9 +6,8 @@ from services.storage import get_all_unique_pairs, get_users_watching
 from services.data_fetcher import prepare_market_data_for_ai
 from services.ai_service import analyze_with_ai
 from services.notification import NotificationService
-from services.patterns import detect_bearish_patterns
+from services.patterns import CandlePatternDetector
 from services.confirmations import volume_confirmation, rsi_confirmation, macd_confirmation
-from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
 from services.model import ReversalModel
 from services.data_fetcher import DataFetcher
 
@@ -70,7 +69,9 @@ def monitor_ai_analysis():
 
     if df is None:
         raise RuntimeError("Data fetch failed (symbol/network)")
-    if not detect_bearish_patterns(df):
+    detector  = CandlePatternDetector(df)
+    match,pattern = detector.detect_patterns()
+    if not match:
         logging.info(f"[{sym} {interval}] Bearish pattern detected, skipping notification")
         continue
     try:
