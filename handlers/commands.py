@@ -86,7 +86,7 @@ async def add_coin(update: Update, context: ContextTypes.DEFAULT_TYPE):
             symbol += 'USDT'
         
         interval = args[1].lower()
-        valid_intervals = ['15m', '1h', '4h', '1d']
+        valid_intervals = ["5m","15m","30m","1h","2h","4h","6h","12h","1d"]
         if interval not in valid_intervals:
              await update.message.reply_text(f"Invalid interval. Use: {', '.join(valid_intervals)}")
              return
