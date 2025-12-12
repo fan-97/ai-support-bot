@@ -5,7 +5,7 @@ import pandas_ta as ta
 
 
 class CryptoDataProcessor:
-    def __init__(self, limit: int = 50):
+    def __init__(self, limit: int = 100):
         self.limit = limit
 
     def calculate_indicators(self, df: pd.DataFrame) -> pd.DataFrame:

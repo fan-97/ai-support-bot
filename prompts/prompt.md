@@ -106,7 +106,7 @@
     "pattern": "分析当前K线形态，如射击之星、锤头、十字星等",
     "leverage": "整数",
     "position_size_usd": "保证金(USDT)",
-    "reasoning_for_size": "为什么要做这笔交易的理由"
+    "reasoning_for_size": "入场理由/入场信号"
   }
 }
 ```

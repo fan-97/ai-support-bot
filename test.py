@@ -4,7 +4,7 @@ import json
 from services.data_fetcher import prepare_market_data_for_ai
 from services.indicators import calc_rsi, calc_macd, calc_ema, calc_bollinger_bands, calc_kdj
 from services.ai_service import analyze_with_ai
-from services.data_processor import CryptoDataProcessor
+from services.patterns import CandlePatternDetector
 from services.notification import NotificationService
 from services.model import ReversalModel
 from services.data_fetcher import DataFetcher

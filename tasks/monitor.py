@@ -1,11 +1,9 @@
 
-import asyncio
 import logging
 from telegram.ext import ContextTypes
 from config.settings import ALLOWED_USER_IDS
 from services.storage import get_all_unique_pairs, get_users_watching
 from services.data_fetcher import prepare_market_data_for_ai
-from services.charting import generate_chart_image
 from services.ai_service import analyze_with_ai
 from services.notification import NotificationService
 from services.patterns import detect_bearish_patterns
