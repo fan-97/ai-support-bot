@@ -59,8 +59,11 @@ async def reversal_monitor(sym, interval):
             caption += "建议: 重点关注 (轻仓尝试 + 紧止损)"
         else:
             caption += "建议: ⚠️ 极端反转区 (高胜率，由于波动大需挂单进场)"
-        #full_report = caption  # Assuming full_report is just the caption for now based on usage below
-        return caption, None
+        
+        if score >= 80:
+            return caption
+        print(f"[{sym} {interval}] Reversal monitor score: {score}")
+        return None,None 
     except Exception as e:
         logging.exception(f"[{sym} {interval}] Reversal monitor error: {e}")
 async def monitor_ai_analysis(sym, interval):
@@ -73,12 +76,12 @@ async def monitor_ai_analysis(sym, interval):
     match,pattern = detector.detect_patterns()
     if not match:
         logging.info(f"[{sym} {interval}] Bearish pattern detected, skipping notification")
-        return
+        return None,None
     try:
         result = await analyze_with_ai(sym, interval, df,df_btc, balance=1000)
         if result.get('decision') == 'HOLD':
             logging.info(f"[{sym} {interval}] AI decision is hold, skipping notification")
-            return 
+            return None,None
         caption, full_report = NotificationService.format_report(sym, interval, result)
         return caption, full_report
     except Exception as e:
@@ -96,6 +99,8 @@ async def monitor_task(context: ContextTypes.DEFAULT_TYPE):
         try:
             caption, full_report = await reversal_monitor(sym, interval)
             # monitor_ai_analysis(sym, interval)
+            if not caption and not full_report:
+                continue
             interested_users = get_users_watching(sym, interval)
             for uid in interested_users:
                 # Double check if user is allowed (optional, but good practice if storage gets messy)
