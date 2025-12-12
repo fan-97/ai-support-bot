@@ -59,6 +59,12 @@ def remove_from_watchlist(user_id, symbol):
         del user_watchlists[uid][symbol]
         save_data()
 
+def clear_user_watchlist(user_id):
+    uid = str(user_id)
+    if uid in user_watchlists:
+        user_watchlists[uid] = {}
+        save_data()
+
 def get_all_unique_pairs():
     """Return a set of (symbol, interval) tuples from all users."""
     pairs = set()
